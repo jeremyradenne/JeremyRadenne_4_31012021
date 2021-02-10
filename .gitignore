@@ -1,0 +1,13 @@
+# dependencies
+/node_modules
+
+# docs
+/Modèle-audit-SEO.xlsx
+
+# debug
+/yarn-debug.log*
+/yarn.lock
+/yarn-error.log*
+
+.DS_Store
+.DS_Store?
