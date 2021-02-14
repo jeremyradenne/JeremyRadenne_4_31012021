@@ -1,13 +1,9 @@
 # dependencies
-/node_modules
+node_modules
+package-lock.json
 
 # docs
-/Modèle-audit-SEO.xlsx
-
-# debug
-/yarn-debug.log*
-/yarn.lock
-/yarn-error.log*
+audit-SEO.xlsx
 
 .DS_Store
 .DS_Store?
