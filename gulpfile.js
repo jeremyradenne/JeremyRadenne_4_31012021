@@ -5,28 +5,60 @@ const webp = require("gulp-webp");
 const concat = require("gulp-concat");
 const uglify = require("gulp-uglify");
 const cssconcat = require("gulp-concat-css");
-const cssnano = require("gulp-cssnano");
+const cleanCSS = require("gulp-clean-css");
+const htmlmin = require("gulp-htmlmin");
+const gulpCopy = require("gulp-copy");
 const del = require("del");
 
 // Clean
 // ------------------
 
 function clean() {
-  return del("build");
+  return del("build/*/*");
 }
 
 // Images
 // ------------------
 
 function imgResize1() {
-  return src("img/*.{png,bmp}")
+  return src("img/logo.png")
+    .pipe(
+      resize({
+        width: 100,
+        height: 100,
+      })
+    )
+    .pipe(
+      rename(function (path) {
+        path.basename += "-100";
+      })
+    )
+    .pipe(dest("build/img"));
+}
+
+function imgResize2() {
+  return src("img/la-chouette-agence.png")
+    .pipe(
+      resize({
+        width: 214,
+        height: 40,
+      })
+    )
+    .pipe(
+      rename(function (path) {
+        path.basename += "-214";
+      })
+    )
+    .pipe(dest("build/img"));
+}
+
+function imgResize3() {
+  return src("img/*.{jpg,bmp}")
     .pipe(
       resize({
         format: "jpg",
         width: 270,
         height: 270,
-        crop: true,
-        imageMagick: true,
       })
     )
     .pipe(
@@ -37,48 +69,28 @@ function imgResize1() {
     .pipe(dest("build/img"));
 }
 
-function imgResize2() {
-  return src("img/*.png")
-    .pipe(
-      resize({
-        width: 476,
-      })
-    )
-    .pipe(
-      rename(function (path) {
-        path.basename += "-476";
-      })
-    )
-    .pipe(dest("build/img"));
-}
-
-function imgResize3() {
-  return src("img/*.png")
-    .pipe(
-      resize({
-        width: 562,
-      })
-    )
-    .pipe(
-      rename(function (path) {
-        path.basename += "-562";
-      })
-    )
-    .pipe(dest("build/img"));
-}
-
 function imgResize4() {
-  return src("img/*.png")
+  return src("img/*.bmp")
     .pipe(
       resize({
-        width: 613,
+        format: "jpg",
+      })
+    )
+    .pipe(dest("build/img"));
+}
+
+function imgResize5() {
+  return src("img/image-de-presentation.bmp")
+    .pipe(
+      resize({
+        format: "jpg",
       })
     )
     .pipe(dest("build/img"));
 }
 
 function imgWebp1() {
-  return src("img/*.jpg").pipe(webp()).pipe(dest("build/img"));
+  return src("img/*.{jpg,png}").pipe(webp()).pipe(dest("build/img"));
 }
 
 function imgWebp2() {
@@ -93,7 +105,17 @@ function cleanImg() {
 // ------------------
 
 function concatJs() {
-  return src("js/*.js").pipe(concat("all.js")).pipe(dest("build/js"));
+  return src([
+    "js/jquery-2.1.0.js",
+    "js/jquery.touchSwipe.js",
+    "js/bootstrap.js",
+    "js/jqBootstrapValidation.js",
+    "js/formHandler.js",
+    "js/blocs.js",
+    "js/gmaps.js",
+  ])
+    .pipe(concat("all.js"))
+    .pipe(dest("build/js"));
 }
 
 function minJs() {
@@ -115,12 +137,14 @@ function cleanJs() {
 // ------------------
 
 function concatCss() {
-  return src("style.css").pipe(cssconcat("style.css")).pipe(dest("build/css"));
+  return src("build/style.css")
+    .pipe(cssconcat("style.css"))
+    .pipe(dest("build/css"));
 }
 
 function minCss() {
   return src("build/css/style.css")
-    .pipe(cssnano())
+    .pipe(cleanCSS({ normalizeUrls: false }))
     .pipe(
       rename(function (path) {
         path.basename += "-min";
@@ -133,18 +157,40 @@ function cleanCss() {
   return del("build/css/style.css");
 }
 
+// HTML
+// ------------------
+
+function minHtml() {
+  return src("build/*.html")
+    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
+    .pipe(dest("build"));
+}
+
+function copyFonts() {
+  return src("fonts/*").pipe(gulpCopy("build/fonts", { prefix: 1 }));
+}
+
 module.exports = {
   clean,
   default: series(
     clean,
     parallel(
       series(
-        parallel(imgResize1, imgResize2, imgResize3, imgResize4, imgWebp1),
+        parallel(
+          imgResize1,
+          imgResize2,
+          imgResize3,
+          imgResize4,
+          imgResize5,
+          imgWebp1
+        ),
         imgWebp2,
         cleanImg
       ),
       series(concatJs, minJs, cleanJs),
-      series(concatCss, minCss, cleanCss)
+      series(concatCss, minCss, cleanCss),
+      minHtml,
+      copyFonts
     )
   ),
 };

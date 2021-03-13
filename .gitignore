@@ -3,7 +3,8 @@ node_modules
 package-lock.json
 
 # docs
-audit-SEO.xlsx
+audit-SEO.numbers
+P4.key
 
 .DS_Store
 .DS_Store?
